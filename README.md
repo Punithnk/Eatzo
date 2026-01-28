@@ -423,5 +423,6 @@ Built as a comprehensive portfolio project demonstrating full-stack development 
 ---
 
 **Note**: This is a portfolio project. For production use, ensure all security measures are properly configured and tested.
-#   E a t z o  
+#   E a t z o 
+ 
  
