@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eatzo - Food Delivery Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+        }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .feature-card {
+            background: #f4f4f4;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .feature-card h3 {
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+        footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📕 Eatzo</h1>
+        <p>Food Delivery Platform - Made with ❤️</p>
+    </header>
+    <div class="container">
+        <h2>Welcome to Eatzo</h2>
+        <p>A full-stack food delivery platform built with Django, React, and modern web technologies.</p>
+        <div class="features">
+            <div class="feature-card">
+                <h3>👨‍💻 User Authentication</h3>
+                <p>Secure login/signup with Django authentication</p>
+            </div>
+            <div class="feature-card">
+                <h3>🍴 Restaurant Browsing</h3>
+                <p>Browse menus with images and detailed descriptions</p>
+            </div>
+            <div class="feature-card">
+                <h3>🚘 Order Management</h3>
+                <p>Track your orders in real-time</p>
+            </div>
+            <div class="feature-card">
+                <h3>💳 Secure Payments</h3>
+                <p>Multiple payment options</p>
+            </div>
+            <div class="feature-card">
+                <h3>🌟 Recommendations</h3>
+                <p>Get personalized food recommendations</p>
+            </div>
+            <div class="feature-card">
+                <h3>📄 Order History</h3>
+                <p>View all your past orders</p>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <p>&copy; 2025 Eatzo - All rights reserved</p>
+    </footer>
+</body>
+</html>
