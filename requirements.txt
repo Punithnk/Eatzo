@@ -1,0 +1,43 @@
+# Eatzo - Food Delivery Platform
+# Production-ready Django application
+
+# Core Django
+Django>=6.0,<7.0
+django-environ>=0.11.0
+
+# Database
+psycopg2-binary>=2.9.0  # PostgreSQL adapter
+
+# Payment Gateway
+razorpay>=1.4.0
+
+# Static Files
+whitenoise>=6.6.0
+
+# Security
+django-cors-headers>=4.3.0
+
+# API Documentation (optional)
+# drf-yasg>=1.21.0  # For Swagger/OpenAPI docs
+
+# Development
+pytest>=7.4.0
+pytest-django>=4.7.0
+coverage>=7.3.0
+
+# Production Server
+gunicorn>=21.2.0
+
+# Environment Variables
+python-decouple>=3.8
+
+# Image Processing (if needed)
+# Pillow>=10.0.0
+
+# Caching (optional - for Redis)
+# django-redis>=5.3.0
+# redis>=5.0.0
+
+# Celery (optional - for async tasks)
+# celery>=5.3.0
+# django-celery-beat>=2.5.0
