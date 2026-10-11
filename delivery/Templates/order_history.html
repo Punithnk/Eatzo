@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order History - Eatzo{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 style="margin-bottom: 2rem;">
+        <i class="fas fa-history"></i> My Orders
+    </h1>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs" style="margin-bottom: 2rem;">
+        <a href="{% url 'order_history' %}" 
+           class="filter-tab {% if not status_filter %}active{% endif %}">
+            All Orders
+        </a>
+        <a href="{% url 'order_history' %}?status=pending" 
+           class="filter-tab {% if status_filter == 'pending' %}active{% endif %}">
+            Pending
+        </a>
+        <a href="{% url 'order_history' %}?status=confirmed" 
+           class="filter-tab {% if status_filter == 'confirmed' %}active{% endif %}">
+            Confirmed
+        </a>
+        <a href="{% url 'order_history' %}?status=delivered" 
+           class="filter-tab {% if status_filter == 'delivered' %}active{% endif %}">
+            Delivered
+        </a>
+    </div>
+
+    {% if orders %}
+        <div class="orders-list">
+            {% for order in orders %}
+                <div class="order-card card">
+                    <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <h3>Order #{{ order.id }}</h3>
+                            <p style="color: var(--text-light); margin-top: 0.5rem;">
+                                {{ order.restaurant.name }} • {{ order.created_at|date:"F d, Y g:i A" }}
+                            </p>
+                            <p style="margin-top: 0.5rem;">
+                                <strong>Total: ₹{{ order.total|floatformat:2 }}</strong>
+                            </p>
+                        </div>
+                        <div style="text-align: right;">
+                            <span class="order-status status-{{ order.status }}">
+                                {{ order.get_status_display }}
+                            </span>
+                            <a href="{% url 'order_detail' order.id %}" class="btn btn-outline" style="margin-top: 1rem; display: block;">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-shopping-bag"></i>
+            <h3>No orders yet</h3>
+            <p>Start ordering delicious food from our restaurants!</p>
+            <a href="{% url 'customer_home' %}" class="btn btn-primary" style="margin-top: 1.5rem;">
+                <i class="fas fa-utensils"></i> Browse Restaurants
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.filter-tabs {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 1rem;
+}
+
+.filter-tab {
+    padding: 0.75rem 1.5rem;
+    text-decoration: none;
+    color: var(--text-light);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1rem;
+    transition: var(--transition);
+    font-weight: 500;
+}
+
+.filter-tab:hover {
+    color: var(--primary-color);
+}
+
+.filter-tab.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.order-card {
+    transition: var(--transition);
+}
+
+.order-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+}
+</style>
+{% endblock %}

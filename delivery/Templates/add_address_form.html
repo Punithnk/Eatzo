@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Add Address - Eatzo{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 600px; margin: 0 auto;">
+    <div style="margin-bottom: 2rem;">
+        <a href="{% url 'manage_addresses' %}" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-arrow-left"></i> Back to Addresses
+        </a>
+    </div>
+
+    <div class="card">
+        <h2 style="margin-bottom: 1.5rem;">
+            <i class="fas fa-map-marker-alt"></i> Add New Address
+        </h2>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    <span>{{ message }}</span>
+                    <button type="button" class="close" onclick="this.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form action="{% url 'add_address' %}" method="post" id="address-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="label">
+                    <i class="fas fa-tag"></i> Address Label *
+                </label>
+                <select id="label" name="label" required>
+                    <option value="Home">Home</option>
+                    <option value="Work">Work</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="street">
+                    <i class="fas fa-road"></i> Street Address *
+                </label>
+                <input 
+                    type="text" 
+                    id="street" 
+                    name="street" 
+                    required
+                    placeholder="House/Flat number, Building name, Street"
+                    autofocus
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="landmark">
+                    <i class="fas fa-map-pin"></i> Landmark (Optional)
+                </label>
+                <input 
+                    type="text" 
+                    id="landmark" 
+                    name="landmark"
+                    placeholder="Nearby landmark"
+                >
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label for="city">
+                        <i class="fas fa-city"></i> City *
+                    </label>
+                    <input 
+                        type="text" 
+                        id="city" 
+                        name="city" 
+                        required
+                        placeholder="City"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="state">
+                        <i class="fas fa-map"></i> State *
+                    </label>
+                    <input 
+                        type="text" 
+                        id="state" 
+                        name="state" 
+                        required
+                        placeholder="State"
+                    >
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="pincode">
+                    <i class="fas fa-mail-bulk"></i> Pincode *
+                </label>
+                <input 
+                    type="text" 
+                    id="pincode" 
+                    name="pincode" 
+                    required
+                    placeholder="6-digit pincode"
+                    pattern="[0-9]{6}"
+                    maxlength="6"
+                >
+            </div>
+
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: normal;">
+                    <input type="checkbox" name="is_default" id="is_default" style="cursor: pointer;">
+                    <span>Set as default address</span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;" id="submit-btn">
+                <i class="fas fa-save"></i> 
+                <span id="submit-text">Save Address</span>
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const form = document.getElementById('address-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const submitText = document.getElementById('submit-text');
+    
+    if (form) {
+        form.addEventListener('submit', function() {
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitText.textContent = 'Saving...';
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Saving...</span>';
+            }
+        });
+    }
+
+    // Pincode validation
+    const pincodeInput = document.getElementById('pincode');
+    if (pincodeInput) {
+        pincodeInput.addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, ''); // Only numbers
+        });
+    }
+</script>
+{% endblock %}

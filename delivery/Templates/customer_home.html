@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Restaurants - Eatzo{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1>
+            <i class="fas fa-utensils"></i> Restaurants
+        </h1>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <a href="{% url 'show_cart' %}" class="btn btn-outline">
+                <i class="fas fa-shopping-cart"></i> Cart
+                {% if user.cart.cart_items.count > 0 %}
+                    <span class="cart-badge">{{ user.cart.cart_items.count }}</span>
+                {% endif %}
+            </a>
+        </div>
+    </div>
+
+    {% if restaurants %}
+        <div class="restaurant-grid">
+            {% for restaurant in restaurants %}
+                <a href="{% url 'view_menu' restaurant.id %}" class="restaurant-card">
+                    <div class="restaurant-image-wrapper">
+                        <img src="{{ restaurant.picture }}" 
+                             alt="{{ restaurant.name }}"
+                             onerror="this.src='https://via.placeholder.com/300x200?text=Restaurant'">
+                        {% if not restaurant.is_active %}
+                            <div class="restaurant-badge closed">Closed</div>
+                        {% endif %}
+                    </div>
+                    <div class="restaurant-card-content">
+                        <h3>{{ restaurant.name }}</h3>
+                        <p class="restaurant-cuisine">{{ restaurant.cuisine }}</p>
+                        <div class="restaurant-rating">
+                            <i class="fas fa-star"></i>
+                            <span>{{ restaurant.rating|floatformat:1 }}</span>
+                            <span class="rating-count">({{ restaurant.total_ratings }} reviews)</span>
+                        </div>
+                        {% if restaurant.estimated_delivery_time %}
+                            <p class="delivery-time">
+                                <i class="fas fa-clock"></i> {{ restaurant.estimated_delivery_time }} min
+                            </p>
+                        {% endif %}
+                        {% if restaurant.minimum_order > 0 %}
+                            <p class="minimum-order">
+                                <i class="fas fa-info-circle"></i> Min. order: ₹{{ restaurant.minimum_order|floatformat:2 }}
+                            </p>
+                        {% endif %}
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-utensils"></i>
+            <h3>No restaurants available</h3>
+            <p>Check back later for new restaurants!</p>
+        </div>
+    {% endif %}
+
+    <!-- Recommendations -->
+    {% if recommendations %}
+        <section style="margin-top: 4rem;">
+            <h2><i class="fas fa-heart"></i> Recommended for You</h2>
+            <div class="restaurant-grid" style="margin-top: 2rem;">
+                {% for item in recommendations|slice:":6" %}
+                    <div class="restaurant-card">
+                        <img src="{{ item.picture }}" 
+                             alt="{{ item.name }}"
+                             onerror="this.src='https://via.placeholder.com/300x200?text=Food'">
+                        <div class="restaurant-card-content">
+                            <h3>{{ item.name }}</h3>
+                            <p>{{ item.restaurant.name }}</p>
+                            <div style="margin-top: 0.5rem;">
+                                <span class="price">₹{{ item.price|floatformat:2 }}</span>
+                            </div>
+                            <a href="{% url 'view_menu' item.restaurant.id %}" class="btn btn-primary" style="margin-top: 1rem; width: 100%;">
+                                View Menu
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.restaurant-image-wrapper {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+}
+
+.restaurant-image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.restaurant-card:hover .restaurant-image-wrapper img {
+    transform: scale(1.05);
+}
+
+.restaurant-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.restaurant-badge.closed {
+    background-color: var(--error-color);
+    color: white;
+}
+
+.minimum-order {
+    color: var(--text-light);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+</style>
+{% endblock %}

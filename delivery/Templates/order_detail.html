@@ -1,0 +1,315 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load math_filters %}
+
+{% block title %}Order #{{ order.id }} - Eatzo{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="margin-bottom: 2rem;">
+        <a href="{% url 'order_history' %}" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-arrow-left"></i> Back to Orders
+        </a>
+    </div>
+
+    <div class="order-header card">
+        <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1>Order #{{ order.id }}</h1>
+                <p style="color: var(--text-light); margin-top: 0.5rem;">
+                    Placed on {{ order.created_at|date:"F d, Y g:i A" }}
+                </p>
+            </div>
+            <div>
+                <span class="order-status status-{{ order.status }}">
+                    {{ order.get_status_display }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="order-details-grid">
+        <!-- Order Items -->
+        <div class="card">
+            <h2><i class="fas fa-utensils"></i> Order Items</h2>
+            <div class="order-items-list">
+                {% for order_item in order.order_items.all %}
+                    <div class="order-item-row">
+                        <div>
+                            <strong>{{ order_item.item_name }}</strong>
+                            <p style="color: var(--text-light); font-size: 0.9rem;">
+                                Quantity: {{ order_item.quantity }}
+                            </p>
+                        </div>
+                        <div style="text-align: right;">
+                            <strong>₹{{ order_item.subtotal|floatformat:2 }}</strong>
+                            <p style="color: var(--text-light); font-size: 0.9rem;">
+                                ₹{{ order_item.item_price|floatformat:2 }} each
+                            </p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="card">
+            <h2><i class="fas fa-receipt"></i> Order Summary</h2>
+            
+            <div class="order-summary-details">
+                <div class="summary-row">
+                    <span>Restaurant</span>
+                    <span><strong>{{ order.restaurant.name }}</strong></span>
+                </div>
+                
+                {% if order.delivery_address %}
+                    <div class="summary-row">
+                        <span>Delivery Address</span>
+                        <span>{{ order.delivery_address.full_address }}</span>
+                    </div>
+                {% endif %}
+                
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span>₹{{ order.subtotal|floatformat:2 }}</span>
+                </div>
+                
+                <div class="summary-row">
+                    <span>Tax (5% GST)</span>
+                    <span>₹{{ order.tax|floatformat:2 }}</span>
+                </div>
+                
+                <div class="summary-row">
+                    <span>Delivery Fee</span>
+                    <span>
+                        {% if order.delivery_fee == 0 %}
+                            <span style="color: var(--success-color);">FREE</span>
+                        {% else %}
+                            ₹{{ order.delivery_fee|floatformat:2 }}
+                        {% endif %}
+                    </span>
+                </div>
+                
+                {% if order.discount > 0 %}
+                    <div class="summary-row" style="color: var(--success-color);">
+                        <span>Discount</span>
+                        <span>- ₹{{ order.discount|floatformat:2 }}</span>
+                    </div>
+                {% endif %}
+                
+                <div class="summary-row total-row">
+                    <span><strong>Total</strong></span>
+                    <span><strong>₹{{ order.total|floatformat:2 }}</strong></span>
+                </div>
+            </div>
+
+            <!-- Payment Status -->
+            {% if order.payment %}
+                <div class="payment-status" style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+                    <h3>Payment Status</h3>
+                    <span class="payment-badge status-{{ order.payment.status }}">
+                        {{ order.payment.get_status_display }}
+                    </span>
+                    {% if order.payment.payment_method %}
+                        <p style="margin-top: 0.5rem; color: var(--text-light);">
+                            Payment Method: {{ order.payment.get_payment_method_display }}
+                        </p>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <!-- Cancel Order (if allowed) -->
+            {% if order.can_be_cancelled %}
+                <form action="{% url 'cancel_order' order.id %}" method="post" style="margin-top: 2rem;">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="reason">Cancellation Reason (optional)</label>
+                        <textarea name="reason" id="reason" rows="2" placeholder="Why are you cancelling this order?"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-outline" style="width: 100%;" 
+                            onclick="return confirm('Are you sure you want to cancel this order?');">
+                        <i class="fas fa-times"></i> Cancel Order
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Order Timeline -->
+    <div class="card" style="margin-top: 2rem;">
+        <h2><i class="fas fa-history"></i> Order Timeline</h2>
+        <div class="timeline">
+            <div class="timeline-item {% if order.status != 'pending' %}completed{% endif %}">
+                <i class="fas fa-clock"></i>
+                <div>
+                    <strong>Order Placed</strong>
+                    <p>{{ order.created_at|date:"F d, Y g:i A" }}</p>
+                </div>
+            </div>
+            {% if order.confirmed_at %}
+                <div class="timeline-item {% if order.status not in 'pending,confirmed' %}completed{% endif %}">
+                    <i class="fas fa-check-circle"></i>
+                    <div>
+                        <strong>Order Confirmed</strong>
+                        <p>{{ order.confirmed_at|date:"F d, Y g:i A" }}</p>
+                    </div>
+                </div>
+            {% endif %}
+            {% if order.status == 'preparing' or order.status == 'out_for_delivery' or order.status == 'delivered' %}
+                <div class="timeline-item {% if order.status not in 'pending,confirmed,preparing' %}completed{% endif %}">
+                    <i class="fas fa-utensils"></i>
+                    <div>
+                        <strong>Preparing</strong>
+                        <p>Your order is being prepared</p>
+                    </div>
+                </div>
+            {% endif %}
+            {% if order.status == 'out_for_delivery' or order.status == 'delivered' %}
+                <div class="timeline-item {% if order.status != 'out_for_delivery' %}completed{% endif %}">
+                    <i class="fas fa-motorcycle"></i>
+                    <div>
+                        <strong>Out for Delivery</strong>
+                        <p>Your order is on the way</p>
+                    </div>
+                </div>
+            {% endif %}
+            {% if order.status == 'delivered' and order.delivered_at %}
+                <div class="timeline-item completed">
+                    <i class="fas fa-check-double"></i>
+                    <div>
+                        <strong>Delivered</strong>
+                        <p>{{ order.delivered_at|date:"F d, Y g:i A" }}</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.order-header {
+    margin-bottom: 2rem;
+}
+
+.order-status {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+}
+
+.status-pending { background-color: #fff3cd; color: #856404; }
+.status-confirmed { background-color: #d1ecf1; color: #0c5460; }
+.status-preparing { background-color: #d4edda; color: #155724; }
+.status-out_for_delivery { background-color: #cce5ff; color: #004085; }
+.status-delivered { background-color: #d4edda; color: #155724; }
+.status-cancelled { background-color: #f8d7da; color: #721c24; }
+
+.order-details-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+}
+
+.order-items-list {
+    margin-top: 1.5rem;
+}
+
+.order-item-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.order-item-row:last-child {
+    border-bottom: none;
+}
+
+.order-summary-details {
+    margin-top: 1.5rem;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.summary-row:last-child {
+    border-bottom: none;
+}
+
+.total-row {
+    font-size: 1.2rem;
+    margin-top: 0.5rem;
+    padding-top: 1rem;
+    border-top: 2px solid var(--primary-color);
+}
+
+.payment-badge {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    font-weight: 600;
+    display: inline-block;
+}
+
+.timeline {
+    margin-top: 1.5rem;
+}
+
+.timeline-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 0;
+    position: relative;
+    padding-left: 2rem;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 0.5rem;
+    top: 2rem;
+    bottom: -1rem;
+    width: 2px;
+    background-color: var(--border-color);
+}
+
+.timeline-item:last-child::before {
+    display: none;
+}
+
+.timeline-item.completed::before {
+    background-color: var(--success-color);
+}
+
+.timeline-item i {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg-light);
+    border-radius: 50%;
+    color: var(--text-light);
+    position: absolute;
+    left: 0;
+}
+
+.timeline-item.completed i {
+    background-color: var(--success-color);
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .order-details-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

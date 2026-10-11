@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sign In - Eatzo{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <h2>Welcome Back!</h2>
+        <p>Sign in to continue ordering delicious food</p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    <span>{{ message }}</span>
+                    <button type="button" class="close" onclick="this.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form action="{% url 'signin' %}" method="post" id="signin-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="username">
+                    <i class="fas fa-user"></i> Username
+                </label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" 
+                    required 
+                    autofocus
+                    placeholder="Enter your username"
+                    value="{{ request.POST.username|default:'' }}"
+                    autocomplete="username"
+                >
+                <small class="error-message" id="username-error"></small>
+            </div>
+
+            <div class="form-group">
+                <label for="password">
+                    <i class="fas fa-lock"></i> Password
+                </label>
+                <div class="password-input-wrapper">
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        required
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                    >
+                    <button type="button" class="password-toggle" id="password-toggle" aria-label="Toggle password visibility">
+                        <i class="fas fa-eye" id="password-icon"></i>
+                    </button>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+                    <small class="error-message" id="password-error"></small>
+                    <a href="{% url 'forgot_password' %}" style="font-size: 0.875rem; color: var(--primary-color); text-decoration: none; font-weight: 500;">
+                        Forgot password?
+                    </a>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="submit-btn">
+                <i class="fas fa-sign-in-alt"></i> 
+                <span id="submit-text">Sign In</span>
+            </button>
+        </form>
+
+        <div class="auth-links">
+            Don't have an account? <a href="{% url 'open_signup' %}">Sign Up</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Password toggle functionality
+    const passwordToggle = document.getElementById('password-toggle');
+    const passwordInput = document.getElementById('password');
+    const passwordIcon = document.getElementById('password-icon');
+    
+    if (passwordToggle) {
+        passwordToggle.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            if (type === 'password') {
+                passwordIcon.classList.remove('fa-eye-slash');
+                passwordIcon.classList.add('fa-eye');
+            } else {
+                passwordIcon.classList.remove('fa-eye');
+                passwordIcon.classList.add('fa-eye-slash');
+            }
+        });
+    }
+
+    // Real-time validation
+    const usernameInput = document.getElementById('username');
+    const passwordInputField = document.getElementById('password');
+    const usernameError = document.getElementById('username-error');
+    const passwordError = document.getElementById('password-error');
+    const submitBtn = document.getElementById('submit-btn');
+    const submitText = document.getElementById('submit-text');
+
+    // Username validation
+    if (usernameInput) {
+        usernameInput.addEventListener('blur', function() {
+            const value = this.value.trim();
+            if (!value) {
+                usernameError.textContent = 'Username is required';
+                this.classList.add('error');
+            } else {
+                usernameError.textContent = '';
+                this.classList.remove('error');
+            }
+        });
+
+        usernameInput.addEventListener('input', function() {
+            if (this.classList.contains('error') && this.value.trim()) {
+                usernameError.textContent = '';
+                this.classList.remove('error');
+            }
+        });
+    }
+
+    // Password validation
+    if (passwordInputField) {
+        passwordInputField.addEventListener('blur', function() {
+            const value = this.value;
+            if (!value) {
+                passwordError.textContent = 'Password is required';
+                this.classList.add('error');
+            } else if (value.length < 6) {
+                passwordError.textContent = 'Password must be at least 6 characters';
+                this.classList.add('error');
+            } else {
+                passwordError.textContent = '';
+                this.classList.remove('error');
+            }
+        });
+
+        passwordInputField.addEventListener('input', function() {
+            if (this.classList.contains('error') && this.value.length >= 6) {
+                passwordError.textContent = '';
+                this.classList.remove('error');
+            }
+        });
+    }
+
+    // Form submission
+    const signinForm = document.getElementById('signin-form');
+    if (signinForm) {
+        signinForm.addEventListener('submit', function(e) {
+            const username = usernameInput.value.trim();
+            const password = passwordInputField.value;
+            let isValid = true;
+
+            // Validate username
+            if (!username) {
+                usernameError.textContent = 'Please enter your username';
+                usernameInput.classList.add('error');
+                usernameInput.focus();
+                isValid = false;
+            }
+
+            // Validate password
+            if (!password) {
+                passwordError.textContent = 'Please enter your password';
+                passwordInputField.classList.add('error');
+                if (isValid) passwordInputField.focus();
+                isValid = false;
+            } else if (password.length < 6) {
+                passwordError.textContent = 'Password must be at least 6 characters';
+                passwordInputField.classList.add('error');
+                if (isValid) passwordInputField.focus();
+                isValid = false;
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                return false;
+            }
+
+            // Disable button and show loading state
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitText.textContent = 'Signing In...';
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Signing In...</span>';
+            }
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eatzo - Food Delivery Platform{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <h1>Delicious Food Delivered to Your Doorstep</h1>
+            <p>Order from your favorite restaurants and enjoy fresh meals at home</p>
+            {% if not user.is_authenticated %}
+                <div class="hero-buttons">
+                    <a href="{% url 'open_signup' %}" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i> Get Started
+                    </a>
+                    <a href="{% url 'open_signin' %}" class="btn btn-outline">
+                        <i class="fas fa-sign-in-alt"></i> Sign In
+                    </a>
+                </div>
+            {% else %}
+                <a href="{% url 'customer_home' %}" class="btn btn-primary">
+                    <i class="fas fa-utensils"></i> Browse Restaurants
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Featured Restaurants -->
+    <section class="featured-section">
+        <h2><i class="fas fa-star"></i> Featured Restaurants</h2>
+        {% if restaurants %}
+            <div class="restaurant-grid">
+                {% for restaurant in restaurants %}
+                    <a href="{% url 'view_menu' restaurant.id %}" class="restaurant-card">
+                        <img src="{{ restaurant.picture }}" 
+                             alt="{{ restaurant.name }}"
+                             onerror="this.src='https://via.placeholder.com/300x200?text=Restaurant'">
+                        <div class="restaurant-card-content">
+                            <h3>{{ restaurant.name }}</h3>
+                            <p class="restaurant-cuisine">{{ restaurant.cuisine }}</p>
+                            <div class="restaurant-rating">
+                                <i class="fas fa-star"></i>
+                                <span>{{ restaurant.rating|floatformat:1 }}</span>
+                                <span class="rating-count">({{ restaurant.total_ratings }} reviews)</span>
+                            </div>
+                            {% if restaurant.estimated_delivery_time %}
+                                <p class="delivery-time">
+                                    <i class="fas fa-clock"></i> {{ restaurant.estimated_delivery_time }} min
+                                </p>
+                            {% endif %}
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-utensils"></i>
+                <h3>No restaurants available</h3>
+                <p>Check back later for new restaurants!</p>
+            </div>
+        {% endif %}
+    </section>
+
+    <!-- Recommendations (if logged in) -->
+    {% if user.is_authenticated and recommendations %}
+        <section class="recommendations-section" style="margin-top: 4rem;">
+            <h2><i class="fas fa-heart"></i> Recommended for You</h2>
+            <div class="restaurant-grid">
+                {% for item in recommendations|slice:":8" %}
+                    <div class="restaurant-card">
+                        <img src="{{ item.picture }}" 
+                             alt="{{ item.name }}"
+                             onerror="this.src='https://via.placeholder.com/300x200?text=Food'">
+                        <div class="restaurant-card-content">
+                            <h3>{{ item.name }}</h3>
+                            <p>{{ item.restaurant.name }}</p>
+                            <div class="restaurant-rating">
+                                <span class="price">₹{{ item.price|floatformat:2 }}</span>
+                            </div>
+                            <a href="{% url 'view_menu' item.restaurant.id %}" class="btn btn-primary" style="margin-top: 1rem;">
+                                View Menu
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.hero-section {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: white;
+    padding: 6rem 0;
+    text-align: center;
+    margin-bottom: 4rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>');
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+}
+
+.hero-content h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.hero-content p {
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.featured-section {
+    margin-bottom: 4rem;
+}
+
+.featured-section h2 {
+    margin-bottom: 2rem;
+    color: var(--text-dark);
+    font-size: 2rem;
+}
+
+.restaurant-cuisine {
+    color: var(--text-light);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.rating-count {
+    color: var(--text-light);
+    font-size: 0.875rem;
+    margin-left: 0.5rem;
+}
+
+.delivery-time {
+    color: var(--text-light);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.price {
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+    .hero-content h1 {
+        font-size: 2rem;
+    }
+    
+    .hero-content p {
+        font-size: 1rem;
+    }
+}
+</style>
+{% endblock %}

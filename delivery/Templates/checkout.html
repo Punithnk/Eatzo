@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load math_filters %}
+
+{% block title %}Checkout - Eatzo{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 style="margin-bottom: 2rem;">
+        <i class="fas fa-credit-card"></i> Checkout
+    </h1>
+
+    <div class="checkout-container">
+        <div class="checkout-form-section">
+            <form action="{% url 'create_order' %}" method="post" id="checkout-form">
+                {% csrf_token %}
+                
+                <!-- Delivery Address -->
+                <div class="card" style="margin-bottom: 2rem;">
+                    <h2><i class="fas fa-map-marker-alt"></i> Delivery Address</h2>
+                    
+                    {% if addresses %}
+                        {% for address in addresses %}
+                            <div class="address-option">
+                                <input type="radio" name="delivery_address_id" 
+                                       value="{{ address.id }}" 
+                                       id="address_{{ address.id }}"
+                                       {% if address.is_default or forloop.first %}checked{% endif %}
+                                       required>
+                                <label for="address_{{ address.id }}">
+                                    <div class="address-label">{{ address.label }}</div>
+                                    <div class="address-text">{{ address.full_address }}</div>
+                                </label>
+                            </div>
+                        {% endfor %}
+                        
+                        <a href="{% url 'open_add_address' %}" class="btn btn-outline" style="margin-top: 1rem;">
+                            <i class="fas fa-plus"></i> Add New Address
+                        </a>
+                    {% else %}
+                        <p>No addresses found. Please add a delivery address.</p>
+                        <a href="{% url 'open_add_address' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add Address
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Coupon Code -->
+                <div class="card" style="margin-bottom: 2rem;">
+                    <h2><i class="fas fa-tag"></i> Apply Coupon</h2>
+                    <div class="form-group">
+                        <input type="text" name="coupon_code" id="coupon_code" 
+                               placeholder="Enter coupon code" 
+                               value="{{ request.GET.coupon|default:'' }}">
+                        <small>Available coupons: WELCOME10, FLAT50</small>
+                    </div>
+                </div>
+
+                <!-- Special Instructions -->
+                <div class="card" style="margin-bottom: 2rem;">
+                    <h2><i class="fas fa-sticky-note"></i> Special Instructions</h2>
+                    <div class="form-group">
+                        <textarea name="customer_notes" id="customer_notes" 
+                                  rows="3" 
+                                  placeholder="Any special delivery instructions..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="card">
+                    <h2><i class="fas fa-receipt"></i> Order Summary</h2>
+                    
+                    <div class="order-items">
+                        {% for cart_item in cart_items %}
+                            <div class="order-item-summary">
+                                <span>{{ cart_item.item.name }} x {{ cart_item.quantity }}</span>
+                                <span>₹{{ cart_item.subtotal|floatformat:2 }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="order-totals">
+                        <div class="total-row">
+                            <span>Subtotal</span>
+                            <span>₹{{ subtotal|floatformat:2 }}</span>
+                        </div>
+                        <div class="total-row">
+                            <span>Tax (5% GST)</span>
+                            <span>₹{{ tax|floatformat:2 }}</span>
+                        </div>
+                        <div class="total-row">
+                            <span>Delivery Fee</span>
+                            <span>
+                                {% if subtotal >= 500 %}
+                                    <span style="color: var(--success-color);">FREE</span>
+                                {% else %}
+                                    ₹{{ delivery_fee|floatformat:2 }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="total-row total-final">
+                            <span><strong>Total</strong></span>
+                            <span><strong>₹{{ total|floatformat:2 }}</strong></span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;">
+                        <i class="fas fa-lock"></i> Place Order & Pay
+                    </button>
+                    
+                    <p style="text-align: center; margin-top: 1rem; font-size: 0.875rem; color: var(--text-light);">
+                        <i class="fas fa-shield-alt"></i> Secure payment powered by Razorpay
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.checkout-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.address-option {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.address-option:hover {
+    border-color: var(--primary-color);
+    background-color: var(--bg-light);
+}
+
+.address-option input[type="radio"] {
+    margin-right: 1rem;
+}
+
+.address-label {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.address-text {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.order-items {
+    margin: 1.5rem 0;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.order-item-summary {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    color: var(--text-light);
+}
+
+.order-totals {
+    margin-top: 1rem;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.total-row:last-child {
+    border-bottom: none;
+}
+
+.total-final {
+    font-size: 1.2rem;
+    margin-top: 0.5rem;
+    padding-top: 1rem;
+    border-top: 2px solid var(--primary-color);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Prevent double submission
+    document.getElementById('checkout-form').addEventListener('submit', function(e) {
+        const submitBtn = this.querySelector('button[type="submit"]');
+        if (submitBtn.disabled) {
+            e.preventDefault();
+            return false;
+        }
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing Order...';
+    });
+
+    // Address selection highlight
+    document.querySelectorAll('input[name="delivery_address_id"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            document.querySelectorAll('.address-option').forEach(option => {
+                option.style.borderColor = 'var(--border-color)';
+                option.style.backgroundColor = 'transparent';
+            });
+            if (this.checked) {
+                this.closest('.address-option').style.borderColor = 'var(--primary-color)';
+                this.closest('.address-option').style.backgroundColor = 'var(--bg-light)';
+            }
+        });
+    });
+</script>
+{% endblock %}

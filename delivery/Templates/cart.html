@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load math_filters %}
+
+{% block title %}Shopping Cart - Eatzo{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 style="margin-bottom: 2rem;">
+        <i class="fas fa-shopping-cart"></i> Shopping Cart
+    </h1>
+
+    {% if is_empty %}
+        <div class="empty-state">
+            <i class="fas fa-shopping-cart"></i>
+            <h3>Your cart is empty</h3>
+            <p>Add delicious items from restaurants to get started!</p>
+            <a href="{% url 'customer_home' %}" class="btn btn-primary" style="margin-top: 1.5rem;">
+                <i class="fas fa-utensils"></i> Browse Restaurants
+            </a>
+        </div>
+    {% else %}
+        <div class="cart-container">
+            <div class="cart-items-section">
+                <h2>Cart Items ({{ item_count }})</h2>
+                
+                {% for cart_item in cart_items %}
+                    <div class="cart-item">
+                        <img src="{{ cart_item.item.picture }}" alt="{{ cart_item.item.name }}" 
+                             onerror="this.src='https://via.placeholder.com/100?text=No+Image'">
+                        <div class="cart-item-details">
+                            <div class="cart-item-name">{{ cart_item.item.name }}</div>
+                            <div class="cart-item-restaurant">{{ cart_item.item.restaurant.name }}</div>
+                            <div class="cart-item-price">₹{{ cart_item.item.price }} each</div>
+                            
+                            <div class="quantity-controls">
+                                <form action="{% url 'update_cart_item' cart_item.item.id %}" method="post" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" name="quantity" value="{{ cart_item.quantity|add:'-1' }}" 
+                                            class="quantity-btn" {% if cart_item.quantity <= 1 %}disabled{% endif %}>
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                </form>
+                                
+                                <span class="quantity-display">{{ cart_item.quantity }}</span>
+                                
+                                <form action="{% url 'update_cart_item' cart_item.item.id %}" method="post" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" name="quantity" value="{{ cart_item.quantity|add:'1' }}" 
+                                            class="quantity-btn">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </form>
+                                
+                                <form action="{% url 'remove_cart_item' cart_item.item.id %}" method="post" style="display: inline; margin-left: 1rem;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline" style="padding: 0.5rem 1rem;">
+                                        <i class="fas fa-trash"></i> Remove
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="cart-item-total">
+                            <strong>₹{{ cart_item.subtotal|floatformat:2 }}</strong>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="cart-summary">
+                <h2>Order Summary</h2>
+                
+                <div class="cart-summary-row">
+                    <span>Subtotal ({{ item_count }} items)</span>
+                    <span>₹{{ subtotal|floatformat:2 }}</span>
+                </div>
+                
+                <div class="cart-summary-row">
+                    <span>Delivery Fee</span>
+                    <span>
+                        {% if subtotal >= 500 %}
+                            <span style="color: var(--success-color);">FREE</span>
+                        {% else %}
+                            ₹{{ delivery_fee|floatformat:2 }}
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="cart-summary-row">
+                    <span>Tax (5% GST)</span>
+                    <span>₹{{ tax|floatformat:2 }}</span>
+                </div>
+                
+                <div class="cart-summary-row">
+                    <span><strong>Total</strong></span>
+                    <span><strong>₹{{ total|floatformat:2 }}</strong></span>
+                </div>
+
+                <a href="{% url 'checkout' %}" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem; justify-content: center;">
+                    <i class="fas fa-credit-card"></i> Proceed to Checkout
+                </a>
+                
+                <a href="{% url 'customer_home' %}" class="btn btn-outline" style="width: 100%; margin-top: 1rem; justify-content: center;">
+                    <i class="fas fa-arrow-left"></i> Continue Shopping
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.cart-container {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.cart-items-section {
+    background: var(--bg-white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 2rem;
+}
+
+.cart-items-section h2 {
+    margin-bottom: 1.5rem;
+    color: var(--text-dark);
+}
+
+.quantity-display {
+    padding: 0 1rem;
+    font-weight: 600;
+    min-width: 40px;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .cart-container {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
